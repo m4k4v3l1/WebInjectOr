@@ -1,0 +1,2 @@
+# blindsqliscanner
+Blind SQLi Scanner

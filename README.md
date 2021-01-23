@@ -5,7 +5,9 @@ it is a tool that takes a links or urls to map their arguments and parameters,
   so that this tool can help administrators of web applications to monitor those scans and check their WebApp's for kinda threats and flows .
 
 
-# Usage : python WebInjectOr.py list-of-links-to-scan.txt
+# Usage : 
+
+python WebInjectOr.py list-of-links-to-scan.txt
 
 # Features : 
 - MultiThreading.

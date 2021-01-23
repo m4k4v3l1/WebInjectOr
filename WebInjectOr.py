@@ -282,7 +282,7 @@ def checkSqli(url):
     cookies = {"pma_lang": "en", "security": "low",
                "PHPSESSID": "c506hvlrjm8n5o06n365bd46qp"}
     r = requests.get(url, verify=False, timeout=10, cookies=cookies)
-    print(WARNING+"[#][SQL-CHECK]  "+ENDC+url)
+    print(BOLD+WARNING+"[#][SQL-CHECK]  "+ENDC+url)
     html = r.content
     for regg in MySQL:
         if(re.search(regg, html)):

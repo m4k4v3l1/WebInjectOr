@@ -7,18 +7,6 @@ it is a tool that takes a links or urls to map their arguments and parameters,
 
 # Usage : python WebInjectOr.py list-of-links-to-scan.txt
 
--------------------------------------------------------------
-
- __          __  _    _____       _           _    ____       
- \ \        / / | |  |_   _|     (_)         | |  / __ \      
-  \ \  /\  / /__| |__  | |  _ __  _  ___  ___| |_| |  | |_ __ 
-   \ \/  \/ / _ \ '_ \ | | | '_ \| |/ _ \/ __| __| |  | | '__|
-    \  /\  /  __/ |_) || |_| | | | |  __/ (__| |_| |__| | |   
-     \/  \/ \___|_.__/_____|_| |_| |\___|\___|\__|\____/|_|   
-                                _/ |                          
-                               |__/                           
--------------------------------------------------------------
-
 # Features : 
 - MultiThreading.
 - Takes a list of links and map them through a file.
@@ -32,6 +20,6 @@ it is a tool that takes a links or urls to map their arguments and parameters,
 - Compatability.
 
 # Vulnerabilites this tool scans : 
-[+] SQL & Blind SQL.
-[+] LFI (Local File Inclusion) / RFI(Remote File Inclusion).
-[+] XSS (Cross Site Scripting)
+- SQL & Blind SQL.
+- LFI (Local File Inclusion) / RFI(Remote File Inclusion).
+- XSS (Cross Site Scripting)

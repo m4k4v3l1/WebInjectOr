@@ -4,6 +4,7 @@ import re
 import codecs
 import sys
 import base64
+from colorama import Fore, Back, Style
 from time import time as timer
 from multiprocessing.dummy import Pool
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -18,10 +19,13 @@ CYAN = '\033[01;36m'
 BOLD = '\033[1m'
 ENDC = '\033[0m'
 
+from colorama import init
+
+init()
 
 def usage():
     try:
-        print(OKBLUE+'Usage : python ' + str(sys.argv[0])+' links.txt'+ENDC)
+        print(Fore.BLUE+'Usage : python ' + str(sys.argv[0])+' links.txt')
     except:
         pass
 
@@ -38,16 +42,7 @@ ooo = list((ooo))
 
 
 def banner():
-    print(CYAN+'--------------------------------------------------------------')
-    print(' __          __  _    _____       _           _    ____       ')
-    print(' \\ \\        / / | |  |_   _|     (_)         | |  / __ \\      ')
-    print('  \\ \\  /\\  / /__| |__  | |  _ __  _  ___  ___| |_| |  | |_ __ ')
-    print('   \\ \\/  \\/ / _ \\ \'_ \\ | | | \'_ \\| |/ _ \\/ __| __| |  | | \'__|')
-    print("    \\  /\\  /  __/ |_) || |_| | | | |  __/ (__| |_| |__| | |   ")
-    print("     \\/  \\/ \\___|_.__/_____|_| |_| |\\___|\\___|\\__|\\____/|_|   ")
-    print("                                _/ |                          ")
-    print("                               |__/                           ")
-    print("--------------------------------------------------------------"+ENDC)
+    print(Fore.CYAN+"""--------------------------------------------------------------\n     __          __  _    _____       _           _    ____       \n     \\ \\        / / | |  |_   _|     (_)         | |  / __ \\      \n      \\ \\  /\\  / /__| |__  | |  _ __  _  ___  ___| |_| |  | |_ __ \n       \\ \\/  \\/ / _ \\ \'_ \\ | | | \'_ \\| |/ _ \\/ __| __| |  | | \'__|\n        \\  /\\  /  __/ |_) || |_| | | | |  __/ (__| |_| |__| | |   \n         \\/  \\/ \\___|_.__/_____|_| |_| |\\___|\\___|\\__|\\____/|_|   \n                                    _/ |                          \n                                   |__/                           \n    --------------------------------------------------------------\n"""+Fore.RESET)
 
 user_agent_list = [
 
@@ -192,7 +187,7 @@ def getLFI(link):
     """
     try:
         cookies = {"pma_lang": "en", "security": "low",
-                   "PHPSESSID": "c506hvlrjm8n5o06n365bd46qp"}
+                   "PHPSESSID": "d3dkdbph1se3kb9v412ha59qer"}
         user_agent = random.choice(user_agent_list)
         headers = {'User-Agent': user_agent}
         request = requests.get(link, headers=headers,
@@ -200,14 +195,13 @@ def getLFI(link):
         string = "root:x:"
         error = "include(../etc/passwd)"
         if error in request.text:
-            print(BOLD+WARNING+"[#][LFI-CHECK]  "+ENDC+link+OKGREEN +
-                  "   Maybe it's Vulnerable..."+ENDC)
+            print("[#]["+Fore.YELLOW+"LFI-CHECK"+Fore.RESET+"]  "+link+Fore.GREEN +"   Maybe it's Vulnerable..."+Fore.RESET)
         else:
-            print(BOLD+FAIL+"-[LFI-FAIL]-  "+ENDC+link+FAIL +
-                  "   "+ENDC)
+            print("[-]"+Fore.RED+"LFI-FAIL"+Fore.RESET+"]  "+Fore.RESET+link+Fore.RED +
+                  "   "+Fore.RESET)
         if request.status_code == 200 and string in request.text:
-            print(BOLD+OKGREEN+"+[LFI-INFO]+  "+ENDC+link+OKGREEN +
-                  "   Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"LFI-INFO"+Fore.RESET+"]  "+link+Fore.GREEN +
+                  "   Vulnerable"+Fore.RESET)
             with open("lfiResults.txt", "a") as fil:
                 fil.write(link+"\n")
             return "exploited"
@@ -227,20 +221,20 @@ def blindSQLi(link):
     """
     try:
         cookies = {"pma_lang": "en", "security": "low",
-                   "PHPSESSID": "c506hvlrjm8n5o06n365bd46qp"}
+                   "PHPSESSID": "d3dkdbph1se3kb9v412ha59qer"}
         # Change User Agent at each Request.
         user_agent = random.choice(user_agent_list)
         headers = {'User-Agent': user_agent}
         request = requests.get(link, headers=headers,
                                verify=False, cookies=cookies)
         if (request.status_code == 200) and (request.elapsed.total_seconds() >= 5):
-            print(BOLD+OKGREEN+"+[BLIND-INFO]+  "+ENDC+link +
-                  OKGREEN+"   Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"BLIND-INFO"+Fore.RESET+"]  "+link +
+                  Fore.GREEN+"   Vulnerable"+Fore.RESET)
             with open("blindSQLiResults.txt", "a") as fil1:
                 fil1.write(link+"\n")
             return "exploited"
         else:
-            print(BOLD+WARNING+"[#][BLIND-CHECK]  "+ENDC+link)
+            print("[#]["+Fore.YELLOW+"BLIND-CHECK"+Fore.RESET+"]  "+link)
             return "notyet"
     except KeyboardInterrupt:
         sys.exit()
@@ -255,18 +249,20 @@ def xssFind(link, payload):
     """
     try:
         # Change User Agent at each Request.
+        cookies = {"pma_lang": "en", "security": "low",
+                   "PHPSESSID": "d3dkdbph1se3kb9v412ha59qer"}
         user_agent = random.choice(user_agent_list)
         headers = {'User-Agent': user_agent}
         request = requests.get(link, headers=headers,
-                               verify=False)
+                               verify=False, cookies=cookies)
         if payload in request.content:
-            print(BOLD+OKGREEN+"+[XSS-INFO]+  "+ENDC+link +
-                  OKGREEN+"   Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"XSS-INFO"+Fore.RESET+"]  "+link +
+                  Fore.GREEN+"   Vulnerable"+Fore.RESET)
             with open("xssResults.txt", "a") as fil1:
                 fil1.write(link+"\n")
             return "exploited"
         else:
-            print(BOLD+FAIL+"-[XSS-CHECK]-  "+ENDC+link)
+            print("[-]"+Fore.YELLOW+"XSS-CHECK"+Fore.RESET+"]  "+link)
             return "notyet"
     except KeyboardInterrupt:
         sys.exit()
@@ -280,49 +276,49 @@ def checkSqli(url):
     This function is created to check SQL Injection at the url provided as parameter
     """
     cookies = {"pma_lang": "en", "security": "low",
-               "PHPSESSID": "c506hvlrjm8n5o06n365bd46qp"}
+               "PHPSESSID": "d3dkdbph1se3kb9v412ha59qer"}
     r = requests.get(url, verify=False, timeout=10, cookies=cookies)
-    print(BOLD+WARNING+"[#][SQL-CHECK]  "+ENDC+url)
+    print("[#]["+Fore.YELLOW+"SQL-CHECK"+Fore.RESET+"]  "+url)
     html = r.content
     for regg in MySQL:
         if(re.search(regg, html)):
-            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
-                  "\t Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+                  "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in PostgreSQL:
         if(re.search(regg, html)):
-            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
-                  "\t Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+                  "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in MicrosoftSQLServer:
         if(re.search(regg, html)):
-            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
-                  "\t Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+                  "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in MicrosoftAccess:
         if(re.search(regg, html)):
-            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
-                  "\t Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+                  "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in Oracle:
         if(re.search(regg, html)):
-            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
-                  "\t Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+                  "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in dIBMDB2:
         if(re.search(regg, html)):
-            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
-                  "\t Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+                  "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in SQLite:
         if(re.search(regg, html)):
-            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
-                  "\t Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+                  "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in Sybase:
         if(re.search(regg, html)):
-            print(OKGREEN+"+[SQL-INFO]+  "+ENDC+url+OKGREEN +
-                  "\t Vulnerable"+ENDC)
+            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+                  "\t Vulnerable"+Fore.RESET)
             return "done"
 
 
@@ -334,7 +330,7 @@ def threads():
         start = timer()
         check = Pool(64)
         check.map(createSqliUrl, ooo)
-        print(BOLD+CYAN+'[*]  Time: ' + str(timer() - start) + ' seconds'+ENDC)
+        print(Style.DIM+Fore.BLUE+'[*]  Time: ' + str(timer() - start) + ' seconds'+Fore.RESET)
 
     except KeyboardInterrupt:
         sys.exit()

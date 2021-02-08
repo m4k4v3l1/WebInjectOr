@@ -23,5 +23,10 @@ python WebInjectOr.py list-of-links-to-scan.txt
 
 # Vulnerabilites this tool scans : 
 - SQL & Blind SQL.
-- LFI (Local File Inclusion) / RFI(Remote File Inclusion).
-- XSS (Cross Site Scripting)
+- LFI (Local File Inclusion).
+- RFI (Remote File Inclusion).
+- XSS (Cross Site Scripting).
+
+# Screenshots :
+![Alt text](https://raw.githubusercontent.com/m4k4v3l1/WebInjectOr/main/Screenshot_2021-02-08_18-33-54.png "Screenshot I")
+![Alt text](https://raw.githubusercontent.com/m4k4v3l1/WebInjectOr/main/Screenshot_2021-02-08_18-30-16.png "Screenshot II")

